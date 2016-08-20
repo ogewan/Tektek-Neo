@@ -8,9 +8,21 @@
                 this.src = src || "";
                 this.data = data || {};
                 this.tID = tID || -1;
+                if (typeof color === 'number'){
+                    this.color = [color];
+                }
+                else if (typeof color === 'string'){
+                    var hex = ParseInt(color, 16);
+                    this.color = (!IsNan(hex)) ? [hex] : [color];
+                }
+                else if (Array.IsArray(color)){
+                    this.color = [color};
+                }
+                this.ID = ID || count;
                 this.ID = ID || count;
                 count++;
             },
+            Layer = function (
             inventory = {};
         this.Make = function(name, type, src, data){
             var item = new Item(name, type, src, data);
