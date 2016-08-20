@@ -21,6 +21,8 @@
         this.Init = function(path){
 
         };
+        this.AddLayer = function() {};
+        this.RemLayer = function() {};
     };
     win.ttn = new TekTekNeo();
     return window.addEventListener ? window.addEventListener("load", win.ttn.init, 0) : 
