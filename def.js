@@ -2,7 +2,7 @@
     function TekTekNeo(path)
     {
         var count = 0,
-            Item = function (name, type, src, data, ID, tID) {
+            Item = function (name, color, type, src, data, ID, tID) {
                 this.name = name || "";
                 this.type = type || -1;
                 this.src = src || "";
@@ -16,13 +16,17 @@
                     this.color = (!IsNan(hex)) ? [hex] : [color];
                 }
                 else if (Array.IsArray(color)){
-                    this.color = [color};
+                    this.color = color;
                 }
-                this.ID = ID || count;
-                this.ID = ID || count;
+                else {
+                    this.color = [];
+                }
+                this.AddColor = function(){};
+                this.RemColor = function(){};
                 count++;
             },
-            Layer = function (
+            Layer = function (){},
+            canvas 
             inventory = {};
         this.Make = function(name, type, src, data){
             var item = new Item(name, type, src, data);
@@ -33,8 +37,8 @@
         this.Init = function(path){
 
         };
-        this.AddLayer = function() {};
-        this.RemLayer = function() {};
+        this.AddLayer = function(){};
+        this.RemLayer = function(){};
     };
     win.ttn = new TekTekNeo();
     return window.addEventListener ? window.addEventListener("load", win.ttn.init, 0) : 
