@@ -57,14 +57,25 @@
                     this.ctx = this.canvas.getContext("2d");
                 },
                 save : function () {
-                    var n = i = 0;
+                    var n = i = 0,
+raw = "",
+state = "";
                     for (i = 0, n = canvas.zindicies.length; i < n; i++) {
                         this.canvas.drawImage(canvas.zindicies[i], 0, 0);
                     }
-                    this.canvas.toDataURL();
-                    //this.canvas.clearRect(0, 0, canvas.width, canvas.height);
+                    raw = this.canvas.toDataURL();
+                    this.canvas.clearRect(0, 0, canvas.width, canvas.height);
+this.
+
                 }
             };
+this.state = {
+name: "",
+flipVert: false,
+flipHorz: false,
+value; 0,
+embed: true
+};
         this.Make = function (name, color, type, src, data) {
             var item = new Item (name, color, type, src, data);
             inventory.types.type = inventory.types.type || [];
