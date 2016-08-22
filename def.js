@@ -5,7 +5,22 @@
             state = 0,
             Update = 0,
             Normalize = function (color) {
-
+                var colorMap = {
+                    pink: "FFC0CB",
+                    red: "FF0000",
+                    magenta: "FF00FF",
+                    brown: "#8B4513",
+                    orange: "FFA500",
+                    yellow: "FFFF00",
+                    green: "00FF00",
+                    cyan: "00FFFF",
+                    blue: "0000FF",
+                    navy: "#0000CD",
+                    violet: "9400D3",
+                    black: "000000",
+                    grey: "BEBEBE",
+                    white: "ffffff"
+                };
             },
             str2b64 = function (str) {
 
