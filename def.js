@@ -23,10 +23,10 @@
                 };
             },
             str2b64 = function (str) {
-
-            },
+return btoa(unescape(encodeURIComponent(str)));
+}
             b642str = function (b64) {
-
+ return decodeURIComponent(escape(window.atob(b64)));
             },
             Item = function (name, color, type, src, data, ID, tID) {
                 this.name = name || "";
