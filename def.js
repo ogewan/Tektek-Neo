@@ -6,21 +6,26 @@
             Update = 0,
             Normalize = function (color) {
                 var colorMap = {
-                    pink: "FFC0CB",
-                    red: "FF0000",
-                    magenta: "FF00FF",
-                    brown: "#8B4513",
-                    orange: "FFA500",
-                    yellow: "FFFF00",
-                    green: "00FF00",
-                    cyan: "00FFFF",
-                    blue: "0000FF",
-                    navy: "#0000CD",
-                    violet: "9400D3",
-                    black: "000000",
-                    grey: "BEBEBE",
-                    white: "ffffff"
-                };
+                    pink: 0xFFC0CB,
+                    red: 0xFF0000,
+                    magenta: 0xFF00FF,
+                    brown: 0x8B4513,
+                    orange: 0xFFA500,
+                    yellow: 0xFFFF00,
+                    green: 0x00FF00,
+                    cyan: 0x00FFFF,
+                    blue: 0x0000FF,
+                    navy: 0x0000CD,
+                    violet: 0x9400D3,
+                    black: 0x000000,
+                    grey: 0xBEBEBE,
+                    white: 0xFFFFFF
+                }
+res = 0;
+if (typeof color == 'string') {
+res = colorMap[color.toLowerCase()];
+} else if (Array.isArray(color) && color.length == 3) {
+res
             },
             str2b64 = function (str) {
 return btoa(unescape(encodeURIComponent(str)));
