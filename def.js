@@ -20,18 +20,37 @@
                     black: 0x000000,
                     grey: 0xBEBEBE,
                     white: 0xFFFFFF
+                },
+                    res = 0;
+                if (typeof color == 'string') {
+                    res = colorMap[color.toLowerCase()];
+                } else if ((Array.isArray(color) && color.length == 3) || !isNan(color / 2)) {
+                    if (Array.isArray(color)) {
+                        res = color[0] * 65536 + color[1] * 256 + color[2];
+                    } else {
+                        res = color;
+                    }
+                    var select = "";
+                    var value = 0xFFFFFFFF;
+                    for (var key in colorMap) {
+                        if (colorMap.hasOwnProperty(key)) {
+                            if (value > Math.abs(colorMap[key] - res)) {
+                                value = Math.abs(colorMap[key] - res);
+                                select = key;
+                            }
+                        }
+                    }
+                    res = colorMap[select];
+                } else {
+                    res = 0;
                 }
-res = 0;
-if (typeof color == 'string') {
-res = colorMap[color.toLowerCase()];
-} else if (Array.isArray(color) && color.length == 3) {
-res
+                return res;
             },
             str2b64 = function (str) {
-return btoa(unescape(encodeURIComponent(str)));
-}
+                return btoa(unescape(encodeURIComponent(str)));
+            },
             b642str = function (b64) {
- return decodeURIComponent(escape(window.atob(b64)));
+                return decodeURIComponent(escape(window.atob(b64)));
             },
             Item = function (name, color, type, src, data, ID, tID) {
                 this.name = name || "";
@@ -72,7 +91,9 @@ return btoa(unescape(encodeURIComponent(str)));
                 this.canvas = canvas || document.createElement("canvas");
                 this.ctx = this.canvas.getContext("2d");
                 this.tID = -1;
+                this.enable = false;
                 //locks
+                this.alLock = false;
                 this.huLock = false;
                 this.leLock = false;
                 this.fvLock = false;
@@ -88,82 +109,90 @@ return btoa(unescape(encodeURIComponent(str)));
                 types: {},  //hash items by type, sort by tID, via object of arrays
                 colors: {}  //hash items by color, via object of objects
             },
-        saver = {
-            init: function () {
-                this.link = document.createElement("A");
-                this.fallback = document.createElement("DIV");
-                this.fbClear = document.createElement("A");
-                this.canvas = document.createElement("canvas");
-                this.ctx = this.canvas.getContext("2d");
-                this.link.style = "display: none;";
-                this.fallback.style = "display: none;";
-                this.fallback.id = "fallback";
-                this.fbClear.innerHTML = "Clear";
-                this.fbClear.addEventListener("click", function () {
-                    document.getElementById("fallback").style = "display: none;";
-                });
-                document.body.appendChild(this.link);
-                document.body.appendChild(this.fallback);
-            },
-            save: function (embed) {
-                var n = i = 0,
-                    raw = "",
-                    strstate = "",
-                    solution = "",
-                    compItems = [],
-                    evt = 0;
-                for (i = 0, n = canvas.zindicies.length; i < n; i++) {
-                    this.canvas.drawImage(canvas.zindicies[i], 0, 0);
-                    compItems.push(canvas.zindicies[i]);
-                }
-                raw = this.canvas.toDataURL();
-                this.canvas.clearRect(0, 0, canvas.width, canvas.height);
-                state.items = compItems;
-                strstate = JSON.stringify(state);
-                state.items = void (0);
-                solution = raw;
-                if (embed) solution += "abcdef" + str2b64(strstate);
-                try {
-                    evt = new MouseEvent("click", {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window
+            saver = {
+                init: function () {
+                    this.link = document.createElement("A");
+                    this.fallback = document.createElement("DIV");
+                    this.fbClear = document.createElement("A");
+                    this.canvas = document.createElement("canvas");
+                    this.ctx = this.canvas.getContext("2d");
+                    this.link.style = "display: none;";
+                    this.fallback.style = "display: none;";
+                    this.fallback.id = "fallback";
+                    this.fbClear.innerHTML = "Clear";
+                    this.fbClear.addEventListener("click", function () {
+                        document.getElementById("fallback").style = "display: none;";
                     });
-                    this.link.download = state.name + ".png";
-                    this.link.href = solution;
-                    this.link.dispatchEvent(evt);
-                } catch (error) {
-                    this.fallback.innerHTML = "Right-click and select 'Save-As'<br><img src=" + solution + "></img>";
-                    this.fallback.style = "display: block;";
-                    this.fallback.appendChild(fbClear);
-                }
-            },
-            load: function (lock) {
-                var data = '',
-                    i = n = 0,
-                    smlState = {};
-                smlState = JSON.parse(b642str(data.substr(data.indexOf("abcdef") + 6)));
-                if (lock !== void(0) && Array.isArray(lock)) {
-                    for (i = 0, n = lock.length; i < n; i++) {
-                        if (isNan(lock[i]/2)) {
-                            smlState[lock[i]] = void(0);
-                        } else{
-                            smlState[lock[i]] = 0;
+                    document.body.appendChild(this.link);
+                    document.body.appendChild(this.fallback);
+                },
+                save: function (embed) {
+                    var n = 0,
+                        i = 0,
+                        raw = "",
+                        strstate = "",
+                        solution = "",
+                        compItems = [],
+                        evt = 0;
+                    for (i = 0, n = canvas.zindicies.length; i < n; i++) {
+                        if (canvas.zindicies[i].enable) {
+                            this.canvas.drawImage(canvas.zindicies[i], 0, 0);
                         }
+                        compItems.push(canvas.zindicies[i]);
                     }
+                    raw = this.canvas.toDataURL();
+                    this.canvas.clearRect(0, 0, canvas.width, canvas.height);
+                    state.items = compItems;
+                    strstate = JSON.stringify(state);
+                    state.items = void (0);
+                    solution = raw;
+                    if (embed) solution += "abcdef" + str2b64(strstate);
+                    try {
+                        evt = new MouseEvent("click", {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window
+                        });
+                        this.link.download = state.name + ".png";
+                        this.link.href = solution;
+                        this.link.dispatchEvent(evt);
+                    } catch (error) {
+                        this.fallback.innerHTML = "Right-click and select 'Save-As'<br><img src=" + solution + "></img>";
+                        this.fallback.style = "display: block;";
+                        this.fallback.appendChild(fbClear);
+                    }
+                },
+                load: function () {
+                    var data = '',
+                        i = 0,
+                        n = 0,
+                        smlState = {},
+                        cursor = {},
+                        handl = {};
+                    smlState = JSON.parse(b642str(data.substr(data.indexOf("abcdef") + 6)));
+                    if (!state.GLock) {
+                        //stateful state properties
+                        state.name = (state.GNmLock) ? state.name : smlState.name;
+                        state.flipVert = (state.GFhLock) ? state.flipVert : smlState.flipVert;
+                        state.flipHorz = (state.GHoLock) ? state.flipHorz : smlState.flipHorz;
+                    }
+                    //stateful layer properties
+                    n = smlState.items.length;
+                    
                 }
-                for (i = 0; i < n; i++)
-                {
-
-                }
-            }
-        };
+            };
         this.state = {
             name: "",
             flipVert: false,
             flipHorz: false,
             value: 0,
-            embed: true
+            budget: 0,
+            LockInherit: false,
+            GLock: false,
+            GFhLock: false,
+            GHoLock: false,
+            GNmLock: false,
+            embed: true //Includes data such as state and layers into the saved png
         };
         state = this.state;
         this.Init = function (path) {
