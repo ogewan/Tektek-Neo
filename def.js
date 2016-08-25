@@ -4,6 +4,10 @@
             countActiveLayer = 0,
             state = 0,
             Update = 0,
+            IsMulti = function (type) {
+                var typeMap = {};
+                return typeMap[type] || false;
+            },
             Normalize = function (color) {
                 var colorMap = {
                     pink: 0xFFC0CB,
@@ -24,7 +28,7 @@
                     res = 0;
                 if (typeof color == 'string') {
                     res = colorMap[color.toLowerCase()];
-                } else if ((Array.isArray(color) && color.length == 3) || !isNan(color / 2)) {
+                } else if ((Array.isArray(color) && color.length == 3) || !IsNan(color / 2)) {
                     if (Array.isArray(color)) {
                         res = color[0] * 65536 + color[1] * 256 + color[2];
                     } else {
@@ -80,18 +84,19 @@
                 this.ID = ID || countItem;
                 countItem++;
             },
-            Layer = function (index, type, multi, hue, levels, fVert, fHorz, item, canvas) {
+            Layer = function (type, multi, hue, levels, fVert, fHorz, item, canvas) {
                 this.type = type || -1;
-                this.multi = multi || false;
+                this.multi = multi || IsMulti(this.type);
                 this.hue = hue || 0;
                 this.levels = levels || "";
                 this.flipVert = fVert;
                 this.flipHorz = fHorz;
                 this.item = item || -1;
                 this.canvas = canvas || document.createElement("canvas");
+                this.canvas.class = "layer";
                 this.ctx = this.canvas.getContext("2d");
                 this.tID = -1;
-                this.enable = false;
+                this.enable = true;
                 //locks
                 this.alLock = false;
                 this.huLock = false;
@@ -162,19 +167,70 @@
                         this.fallback.appendChild(fbClear);
                     }
                 },
-                load: function () {
-                    var data = '',
+                load: function (data) {
+                    smlState = JSON.parse(b642str(data.substr(data.indexOf("abcdef") + 6)));
+                    var cnvcur = canvas.zindicies,
+                        smlcur = smlState.items,
+                        newID = 0,
+                        maxSta = canvas.zindicies.length,
+                        maxSml = smlState.items.length,
+                        newlayers = [],
+                        newTypeMap = {},
                         i = 0,
+                        j = 0,
                         n = 0,
                         smlState = {},
                         cursor = {},
                         handl = {};
-                    smlState = JSON.parse(b642str(data.substr(data.indexOf("abcdef") + 6)));
+
                     if (!state.GLock) {
                         //stateful state properties
                         state.name = (state.GNmLock) ? state.name : smlState.name;
                         state.flipVert = (state.GFhLock) ? state.flipVert : smlState.flipVert;
                         state.flipHorz = (state.GHoLock) ? state.flipHorz : smlState.flipHorz;
+
+                        //stateful layer properties
+                        while (i < maxSta || n < maxSml) {
+                            if (cnvcur[i].alLock) {
+                                newID = newLayers.push(cnvcur[i]);
+                                cnvcur[i] = void(0);
+                            } else {
+                                newID = newLayers.push(new Layer(
+                                    (cnvcur[i].itLock) ? cnvcur[i].item.type : smlcur[n].item.type,
+                                    null,
+                                    (cnvcur[i].huLock) ? cnvcur[i].hue : smlcur[n].hue,
+                                    (cnvcur[i].fvLock) ? cnvcur[i].flipVert : smlcur[n].flipVert,
+                                    (cnvcur[i].fhLock) ? cnvcur[i].flipHorz : smlcur[n].flipHorz,
+                                    (cnvcur[i].itLock) ? cnvcur[i].item : smlcur[n].item
+                                ));
+                                newLayers[newID].enable = smlcur[n].enable;
+
+                                if (state.LockInherit) {
+                                    newLayers[newID].alLock = smlcur[n].alLock;
+                                    newLayers[newID].huLock = smlcur[n].huLock;
+                                    newLayers[newID].leLock = smlcur[n].leLock;
+                                    newLayers[newID].fvLock = smlcur[n].fvLock;
+                                    newLayers[newID].fhLock = smlcur[n].fhLock;
+                                    newLayers[newID].itLock = smlcur[n].itLock;
+                                }
+                            }
+                            if (newTypeMap[newLayers[newID].type] === void(0)){
+                                newTypeMap[newLayers[newID].type] = [newLayers[newID]];
+                                newLayers[newID].tID = 0;
+                            } else {
+                                newLayers[newID].tID = newTypeMap[newLayers[newID].type].push(newLayers[newID]);
+                            }
+                        }
+                        canvas.zindicies = newLayers;
+                        canvas.types = newTypeMap;
+
+                        if (state.LockInherit) {
+                            state.LockInherit = smlState.LockInherit;
+                            state.GLock = smlState.GLock;
+                            state.GFhLock = smlState.GFhLock;
+                            state.GHoLock = smlState.GHoLock;
+                            state.GNmLock = smlState.GNmLock;
+                        }
                     }
                     //stateful layer properties
                     n = smlState.items.length;
