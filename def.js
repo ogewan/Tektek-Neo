@@ -191,35 +191,8 @@
 
                         //stateful layer properties
                         while (i < maxSta || n < maxSml) {
-                            if (cnvcur[i].alLock) {
-                                newID = newLayers.push(cnvcur[i]);
-                                cnvcur[i] = void(0);
-                            } else {
-                                newID = newLayers.push(new Layer(
-                                    (cnvcur[i].itLock) ? cnvcur[i].item.type : smlcur[n].item.type,
-                                    null,
-                                    (cnvcur[i].huLock) ? cnvcur[i].hue : smlcur[n].hue,
-                                    (cnvcur[i].fvLock) ? cnvcur[i].flipVert : smlcur[n].flipVert,
-                                    (cnvcur[i].fhLock) ? cnvcur[i].flipHorz : smlcur[n].flipHorz,
-                                    (cnvcur[i].itLock) ? cnvcur[i].item : smlcur[n].item
-                                ));
-                                newLayers[newID].enable = smlcur[n].enable;
-
-                                if (state.LockInherit) {
-                                    newLayers[newID].alLock = smlcur[n].alLock;
-                                    newLayers[newID].huLock = smlcur[n].huLock;
-                                    newLayers[newID].leLock = smlcur[n].leLock;
-                                    newLayers[newID].fvLock = smlcur[n].fvLock;
-                                    newLayers[newID].fhLock = smlcur[n].fhLock;
-                                    newLayers[newID].itLock = smlcur[n].itLock;
-                                }
-                            }
-                            if (newTypeMap[newLayers[newID].type] === void(0)){
-                                newTypeMap[newLayers[newID].type] = [newLayers[newID]];
-                                newLayers[newID].tID = 0;
-                            } else {
-                                newLayers[newID].tID = newTypeMap[newLayers[newID].type].push(newLayers[newID]);
-                            }
+                            if ()
+                            regn(newLayers, newTypeMap, cnvcur[i], smlcur[n], state.LockInherit);
                         }
                         canvas.zindicies = newLayers;
                         canvas.types = newTypeMap;
@@ -232,9 +205,37 @@
                             state.GNmLock = smlState.GNmLock;
                         }
                     }
-                    //stateful layer properties
-                    n = smlState.items.length;
-                    
+                },
+                regn: function (newLayers, newTypeMap, cnvcursor, smlcursor, SLI) {
+                    if (cnvcursor.alLock) {
+                        newLayersID = newLayers[newLayers.push(cnvcursor)];
+                        cnvcursor = void (0);
+                    } else {
+                        newID = newLayers.push(new Layer(
+                            (cnvcursor.itLock) ? cnvcursor.item.type : smlcursor.item.type,
+                            void(0),
+                            (cnvcursor.huLock) ? cnvcursor.hue : smlcursor.hue,
+                            (cnvcursor.fvLock) ? cnvcursor.flipVert : smlcursor.flipVert,
+                            (cnvcursor.fhLock) ? cnvcursor.flipHorz : smlcursor.flipHorz,
+                            (cnvcursor.itLock) ? cnvcursor.item : smlcursor.item
+                        ));
+                        newLayersID.enable = smlcursor.enable;
+                        cnvcursor.canvas.parentNode.removeChild(cnvcursor.canvas);
+                        if (SLI) {
+                            newLayersID.alLock = smlcursor.alLock;
+                            newLayersID.huLock = smlcursor.huLock;
+                            newLayersID.leLock = smlcursor.leLock;
+                            newLayersID.fvLock = smlcursor.fvLock;
+                            newLayersID.fhLock = smlcursor.fhLock;
+                            newLayersID.itLock = smlcursor.itLock;
+                        }
+                    }
+                    if (newTypeMap[newLayersID.type] === void (0)) {
+                        newTypeMap[newLayersID.type] = [newLayersID];
+                        newLayersID.tID = 0;
+                    } else {
+                        newLayersID.tID = newTypeMap[newLayersID.type].push(newLayersID);
+                    }
                 }
             };
         this.state = {
