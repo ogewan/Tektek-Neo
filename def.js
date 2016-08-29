@@ -179,9 +179,12 @@
                         i = 0,
                         j = 0,
                         n = 0,
+                        SLI = false,
                         smlState = {},
                         cursor = {},
-                        handl = {};
+                        handl = {},
+                        cnvcursor = {},
+                        smlcursor = {};
 
                     if (!state.GLock) {
                         //stateful state properties
@@ -190,37 +193,64 @@
                         state.flipHorz = (state.GHoLock) ? state.flipHorz : smlState.flipHorz;
 
                         //stateful layer properties
-<<<<<<<<<<<<                      
-                    if (cnvcursor.alLock) {
-                        newLayersID = newLayers[newLayers.push(cnvcursor) - 1];
-                        cnvcursor = void (0);
-                    } else {
-                        newID = newLayers.push(new Layer(
-                            (cnvcursor.itLock) ? cnvcursor.item.type : smlcursor.item.type,
-                            void(0),
-                            (cnvcursor.huLock) ? cnvcursor.hue : smlcursor.hue,
-                            (cnvcursor.fvLock) ? cnvcursor.flipVert : smlcursor.flipVert,
-                            (cnvcursor.fhLock) ? cnvcursor.flipHorz : smlcursor.flipHorz,
-                            (cnvcursor.itLock) ? cnvcursor.item : smlcursor.item
-                        ));
-                        newLayersID.enable = smlcursor.enable;
-                        cnvcursor.canvas.parentNode.removeChild(cnvcursor.canvas);
-                        if (SLI) {
-                            newLayersID.alLock = smlcursor.alLock;
-                            newLayersID.huLock = smlcursor.huLock;
-                            newLayersID.leLock = smlcursor.leLock;
-                            newLayersID.fvLock = smlcursor.fvLock;
-                            newLayersID.fhLock = smlcursor.fhLock;
-                            newLayersID.itLock = smlcursor.itLock;
+                        //remove any layer that is unlocked
+                        SLI = state.LockInherit;
+                        for (n = 0; n < maxSta; n++) {
+                            cnvcursor = cnvcur[n];
+                            if (!(cnvcursor.alLock ||
+                                cnvcursor.itLock || cnvcursor.huLock || cnvcursor.fvLock ||
+                                cnvcursor.fhLock || cnvcursor.itLock)) {
+                                cnvcursor.canvas.parentNode.removeChild(cnvcursor.canvas);
+                                cnvcur.splice(n, 1);
+                                maxSta = canvas.zindicies.length;
+                                n--;
+                            }
                         }
-                    }
-                    if (newTypeMap[newLayersID.type] === void (0)) {
-                        newTypeMap[newLayersID.type] = [newLayersID];
-                        newLayersID.tID = 0;
-                    } else {
-                        newLayersID.tID = newTypeMap[newLayersID.type].push(newLayersID);
-                    }
->>>>>>>>>>>>
+
+                        while (j < maxSml) {
+                            cnvcursor = cnvcur[i];
+                            smlcursor = smlcur[j];
+                            if (cnvcursor.alLock) {
+                                newLayersID = newLayers[newLayers.push(cnvcursor) - 1];
+                                cnvcur[i] = {};
+                                i++;
+                            } else {
+                                cnvcursor = {};
+                                for (n = 0; n < maxSta; n++) {
+                                    if (smlcursor.type == cnvcur[n].type) {
+                                        cnvcursor = cnvcur[n];
+                                        break;
+                                    }
+                                }
+                                newLayersID = newLayers[newLayers.push(new Layer(
+                                    (cnvcursor.itLock) ? cnvcursor.item.type : smlcursor.item.type,
+                                    void (0),
+                                    (cnvcursor.huLock) ? cnvcursor.hue : smlcursor.hue,
+                                    (cnvcursor.fvLock) ? cnvcursor.flipVert : smlcursor.flipVert,
+                                    (cnvcursor.fhLock) ? cnvcursor.flipHorz : smlcursor.flipHorz,
+                                    (cnvcursor.itLock) ? cnvcursor.item : smlcursor.item
+                                )) - 1];
+                                newLayersID.enable = smlcursor.enable;
+                                cnvcursor.canvas.parentNode.removeChild(cnvcursor.canvas);
+                                if (SLI) {
+                                    newLayersID.alLock = smlcursor.alLock;
+                                    newLayersID.huLock = smlcursor.huLock;
+                                    newLayersID.leLock = smlcursor.leLock;
+                                    newLayersID.fvLock = smlcursor.fvLock;
+                                    newLayersID.fhLock = smlcursor.fhLock;
+                                    newLayersID.itLock = smlcursor.itLock;
+                                }
+                                cnvcur[n] = {};
+                                smlcur[j] = {};
+                                j++;
+                            }
+                            if (newTypeMap[newLayersID.type] === void (0)) {
+                                newTypeMap[newLayersID.type] = [newLayersID];
+                                newLayersID.tID = 0;
+                            } else {
+                                newLayersID.tID = newTypeMap[newLayersID.type].push(newLayersID);
+                            }
+                        }
 
                         canvas.zindicies = newLayers;
                         canvas.types = newTypeMap;
@@ -233,8 +263,62 @@
                             state.GNmLock = smlState.GNmLock;
                         }
                     }
+                }
+            },
+            auto = {
+                toID: 0,
+                time: 0,
+                init: function (restore) {
+                    if (typeof (Storage) !== void(0)) {
+                        if (restore){
+                            auto.load();
+                        }
+                        time = 10000;
+                        toID = win.setTimeout(auto.save, time);
+                    } else {
+                        console.log("TTN: This browser does not support Web Storage");
+                    }
                 },
-                regn: function (newLayers, newTypeMap, cnvcursor, smlcursor, SLI) {
+                save: function () {
+                    var strstate = '';
+                    win.clearTimeout(toID);
+                    state.items = canvas.zindicies;
+                    strstate = JSON.stringify(state);
+                    state.items = void (0);
+                    localStorage.TTNState = strstate;
+                    toID = win.setTimeout(auto.save, time);
+                },
+                load: function(){
+                    var data = JSON.parse(localStorage.TTNState),
+                        cnvcur = canvas.zindicies,
+                        ditcur = data.items,
+                        newID = {};
+                    canvas.types = {};
+                    for (var i = 0; i < cnvcur.length; i++) {
+                        cnvcur[i].canvas.parentNode.removeChild(cnvcur[i].canvas);
+                    }
+                    canvas.zindicies = [];
+                    for (var j = 0; j < ditcur.length; j++) {
+                        newID = canvas.zindicies[canvas.zindicies.push(new Layer(
+                            ditcur[j].item.type,
+                            ditcur[j].multi,
+                            ditcur[j].hue,
+                            ditcur[j].flipVert,
+                            ditcur[j].flipHorz,
+                            ditcur[j].item
+                        ))];
+                        newID.enable = ditcur[j].enable;
+
+                        if (canvas.types[newID.type] === void (0)) {
+                            canvas.types[newID.type] = [newID];
+                            newID.tID = 0;
+                        } else {
+                            newID.tID = canvas.types[newID.type].push(newID);
+                        }
+                    }
+                },
+                empt: function () {
+                    localStorage.removeItem(TTNState);
                 }
             };
         this.state = {
@@ -270,8 +354,8 @@
             }
             inventory.colors[item.color] = item;
         };
-        this.AddLayer = function (index, replace) {
-            //add layer, replacing the current one if replace = true
+        this.AddLayer = function (item, append, index) {
+            //add layer, replacing the current one if append = false
 
         };
         this.RemLayer = function (index) {
