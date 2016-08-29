@@ -190,25 +190,9 @@
                         state.flipHorz = (state.GHoLock) ? state.flipHorz : smlState.flipHorz;
 
                         //stateful layer properties
-                        while (i < maxSta || n < maxSml) {
-                            if ()
-                            regn(newLayers, newTypeMap, cnvcur[i], smlcur[n], state.LockInherit);
-                        }
-                        canvas.zindicies = newLayers;
-                        canvas.types = newTypeMap;
-
-                        if (state.LockInherit) {
-                            state.LockInherit = smlState.LockInherit;
-                            state.GLock = smlState.GLock;
-                            state.GFhLock = smlState.GFhLock;
-                            state.GHoLock = smlState.GHoLock;
-                            state.GNmLock = smlState.GNmLock;
-                        }
-                    }
-                },
-                regn: function (newLayers, newTypeMap, cnvcursor, smlcursor, SLI) {
+<<<<<<<<<<<<                      
                     if (cnvcursor.alLock) {
-                        newLayersID = newLayers[newLayers.push(cnvcursor)];
+                        newLayersID = newLayers[newLayers.push(cnvcursor) - 1];
                         cnvcursor = void (0);
                     } else {
                         newID = newLayers.push(new Layer(
@@ -236,6 +220,21 @@
                     } else {
                         newLayersID.tID = newTypeMap[newLayersID.type].push(newLayersID);
                     }
+>>>>>>>>>>>>
+
+                        canvas.zindicies = newLayers;
+                        canvas.types = newTypeMap;
+
+                        if (state.LockInherit) {
+                            state.LockInherit = smlState.LockInherit;
+                            state.GLock = smlState.GLock;
+                            state.GFhLock = smlState.GFhLock;
+                            state.GHoLock = smlState.GHoLock;
+                            state.GNmLock = smlState.GNmLock;
+                        }
+                    }
+                },
+                regn: function (newLayers, newTypeMap, cnvcursor, smlcursor, SLI) {
                 }
             };
         this.state = {
@@ -260,7 +259,7 @@
         };
         Update = this.update;
         this.Make = function (name, color, type, src, data) {
-            var item = new Item(name, color, type, src, data);
+            var item = new Item(name, Normalize(color), type, src, data);
             inventory.types.type = inventory.types.type || [];
             item.tID = inventory.types.type.length;
             inventory.types.type.push(item);
@@ -269,21 +268,30 @@
             } else {
                 throw "already defined";
             }
-            inventory.colors[Normalize(color)] = item;
+            inventory.colors[item.color] = item;
         };
         this.AddLayer = function (index, replace) {
+            //add layer, replacing the current one if replace = true
 
         };
         this.RemLayer = function (index) {
+            //remove layer
 
         };
-        this.MovLayer = function (index) {
+        this.MovLayer = function (index, pos) {
+            //move layer to pos
 
         };
         this.SwpLayer = function (src, dst) {
+            //swap src layer with dst layer
 
         };
         this.ModLayer = function (index) {
+            //modify layer
+
+        };
+        this.ReoLayer = function () {
+            //reorder layers to standard order
 
         };
     }
