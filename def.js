@@ -269,8 +269,8 @@
                 toID: 0,
                 time: 0,
                 init: function (restore) {
-                    if (typeof (Storage) !== void(0)) {
-                        if (restore){
+                    if (typeof (Storage) !== void (0)) {
+                        if (restore) {
                             auto.load();
                         }
                         time = 10000;
@@ -288,7 +288,7 @@
                     localStorage.TTNState = strstate;
                     toID = win.setTimeout(auto.save, time);
                 },
-                load: function(){
+                load: function () {
                     var data = JSON.parse(localStorage.TTNState),
                         cnvcur = canvas.zindicies,
                         ditcur = data.items,
@@ -336,7 +336,28 @@
         };
         state = this.state;
         this.Init = function (path) {
-
+            (function loadXMLDoc() {
+                var xmlhttp;
+                if (window.XMLHttpRequest) {
+                    xmlhttp = new XMLHttpRequest();
+                } else {
+                    // code for older browsers
+                    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        var prelim = JSON.parse(xmlhttp.responseText);
+                        for (var i = 0; i < prelim.length; i++) {
+                            Make(prelim[i].name, prelim[i].color, prelim[i].type,
+                                prelim[i].src, prelim[i].data);
+                        }
+                    } else if (xmlhttp.readyState == 4 && xmlhttp.status == 404) {
+                        console.log("No Inventory Found");
+                    }
+                };
+                xmlhttp.open("GET", path || "inventory.json", true);
+                xmlhttp.send();
+            })();
         };
         this.Update = function () {
 
@@ -354,29 +375,98 @@
             }
             inventory.colors[item.color] = item;
         };
-        this.AddLayer = function (item, append, index) {
-            //add layer, replacing the current one if append = false
+        Make = this.Make;
+        this.Export = function () {
+            var
+                solution = JSON.stringify(inventory);
+            evt = 0,
+                link = document.createElement("A"),
+                fallback = document.createElement("DIV"),
+                fbClear = document.createElement("A");
+            link.style = "display: none;";
+            fallback.style = "display: none;";
+            fallback.id = "ex_fallback";
+            fbClear.innerHTML = "Clear";
+            fbClear.addEventListener("click", function () {
+                var self = document.getElementById("ex_fallback");
+                self.parentNode.removeChild(self);
+            });
+            document.body.appendChild(link);
+            document.body.appendChild(fallback);
+            try {
+                evt = new MouseEvent("click", {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                });
+                link.download = "inventory.json";
+                link.href = solution;
+                link.dispatchEvent(evt);
+                link.parentNode.removeChild(link);
+            } catch (error) {
+                fallback.innerHTML = "Right-click and select 'Save-As'<br><img src=" + solution + "></img>";
+                fallback.style = "display: block;";
+                fallback.appendChild(fbClear);
+            }
+        };
+        Export = this.Make;
+        Regenerate = function (){
+            canvas.types = {};
+            for (var j = 0; j < canvas.zindicies.length; j++) {
+                if (canvas.types[canvas.zindicies[j].type] === void (0)) {
+                    canvas.types[canvas.zindicies[j].type] = [canvas.zindicies[j]];
+                    canvas.zindicies[j].tID = 0;
+                } else {
+                    canvas.zindicies[j].tID = canvas.types[canvas.zindicies[j].type].push(canvas.zindicies[j]);
+                }
+            }
+        }
+        this.AddLayer = function (item) {
+            var cnvNEW = canvas.zindicies[canvas.zindicies.push(new Layer(
+                void (0), void (0), void (0), void (0), void (0), item)) - 1];
 
+            if (canvas.types[cnvNEW.type] === void (0)) {
+                canvas.types[cnvNEW.type] = [cnvNEW];
+                cnvNEW.tID = 0;
+            } else {
+                cnvNEW.tID = canvas.types[cnvNEW.type].push(cnvNEW);
+            }
+            auto.save();
         };
         this.RemLayer = function (index) {
             //remove layer
-
+            canvas.zindicies.splice(index, 1);
+            Regenerate();
+            auto.save();
         };
         this.MovLayer = function (index, pos) {
             //move layer to pos
-
+            canvas.zindicies.splice(pos, 0, canvas.zindicies.splice(index, 1));
+            Regenerate();
+            auto.save();
         };
         this.SwpLayer = function (src, dst) {
             //swap src layer with dst layer
-
+            var LSrc = canvas.zindicies.splice(src, 1, {});
+            var LDst = canvas.zindicies.splice(dst, 1, {});
+            canvas.zindicies.splice(src, 1, LDst);
+            canvas.zindicies.splice(dst, 1, LSrc);
+            Regenerate();
+            auto.save();
         };
         this.ModLayer = function (index) {
             //modify layer
-
+            var target = canvas.zindicies[index];
+            //auto.save();
+            return target;
         };
         this.ReoLayer = function () {
             //reorder layers to standard order
-
+            canvas.zindicies.sort(function (a, b) {
+                return a - b;
+            });
+            Regenerate();
+            auto.save();
         };
     }
     win.ttn = new TekTekNeo();
