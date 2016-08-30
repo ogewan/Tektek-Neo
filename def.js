@@ -28,9 +28,17 @@
                     res = 0;
                 if (typeof color == 'string') {
                     res = colorMap[color.toLowerCase()];
-                } else if ((Array.isArray(color) && color.length == 3) || !IsNan(color / 2)) {
-                    if (Array.isArray(color)) {
+                } else if (Array.isArray(color) || !IsNan(color / 2)) {
+                    if (Array.isArray(color) && color.length == 3 && typeof color[0] == 'number') {
                         res = color[0] * 65536 + color[1] * 256 + color[2];
+                        if (IsNan(res)) {
+                            res = 0;
+                        }
+                    } else if (Array.isArray(color)) {
+                        for (var k = 0; k < color.length; k++){
+                            color[k] = colorMap[color[k].toLowerCase()];
+                        }
+                        res = color;
                     } else {
                         res = color;
                     }
@@ -75,10 +83,10 @@
                 else {
                     this.color = [];
                 }
-                this.AddColor = function () {
-
+                this.AddColor = function (color) {
+                    this.color.push(Normalize(color));
                 };
-                this.RemColor = function () {
+                this.RemColor = function (color) {
 
                 };
                 this.ID = ID || countItem;
@@ -105,6 +113,76 @@
                 this.fhLock = false;
                 this.itLock = false;
             },
+            genHashTree = function(list) {
+                var result = {},
+                    length = list.length,
+                    nmecur = 0;
+                list.sort(function (a, b) {
+                    return (a.name < b.name) ? -1 : (a.name > b.name) ? 1 : 0;
+                });
+
+                if (length == 1) {
+                    result.data = list[0];
+                    result.right = [];
+                    result.rightkey = "";
+                    result.rightname = "";
+                    result.leftkey = "";
+                    result.leftname = "";
+                    result.left = [];
+                } else {
+                    length = Math.abs(length / 2);
+                    result.right = list.splice(length, Infinity);
+                    result.rightkey = result.right[0].name[nmecur];
+                    result.rightname = result.right[0].name.substring(0, nmecur + 1);
+                    result.leftkey = list[0].name[nmecur];
+                    result.leftname = list[0].name.substring(0, nmecur + 1);
+                    result.left = list;
+                    if (result.rightkey == result.right[0].name) {
+                        result.data = result.right.splice(0, 1);
+                    } else if (result.leftkey == result.left[list.length - 1].name) {
+                        result.data = result.left.splice(list.length - 1, 1);
+                    } else {
+                        result.data = {};
+                    }
+                    nmecur++;
+                    result.right = recurseTree(result.right, nmecur);
+                    result.left = recurseTree(result.left, nmecur);
+                }
+                inventory.tree = result;
+            },
+            recurseTree = function(half, nmecur) {
+                var result = {},
+                    length = half.length;
+
+                if (length == 1) {
+                    result.data = list[0];
+                    result.right = [];
+                    result.rightkey = "";
+                    result.rightname = "";
+                    result.leftkey = "";
+                    result.leftname = "";
+                    result.left = [];
+                } else {
+                    length = Math.abs(length / 2);
+                    result.right = list.splice(length, Infinity);
+                    result.rightkey = result.right[0].name[nmecur];
+                    result.rightname = result.right[0].name.substring(0, nmecur + 1);
+                    result.leftkey = list[0].name[nmecur];
+                    result.leftname = list[0].name.substring(0, nmecur + 1);
+                    result.left = list;
+                    if (result.rightkey == result.right[0].name) {
+                        result.data = result.right.splice(0, 1);
+                    } else if (result.leftkey == result.left[list.length - 1].name) {
+                        result.data = result.left.splice(list.length - 1, 1);
+                    } else {
+                        result.data = {};
+                    }
+                    nmecur++;
+                    result.right = recurseTree(result.right, nmecur);
+                    result.left = recurseTree(result.left, nmecur);
+                }
+                return result;
+            },
             canvas = {
                 zindicies: [],  //primary sort
                 types: {},      //hash layers by type, sort by zindex
@@ -112,7 +190,13 @@
             inventory = {
                 ids: [],    //primary sort
                 types: {},  //hash items by type, sort by tID, via object of arrays
-                colors: {}  //hash items by color, via object of objects
+                colors: {},  //hash items by color, via object of objects
+                tree: {}, //alphabetically sorted tree
+                query: function(search) {
+                    var results = [];
+
+                    return results;
+                }
             },
             saver = {
                 init: function () {
@@ -373,13 +457,17 @@
             } else {
                 throw "already defined";
             }
+            for(var i = 0; i < item.color.length; i++) {
+                inventory.colors[item.color[i]] = inventory.colors[item.color[i]] || [];
+                inventory.colors[item.color[i]].push(item);
+            }
             inventory.colors[item.color] = item;
         };
         Make = this.Make;
         this.Export = function () {
             var
-                solution = JSON.stringify(inventory);
-            evt = 0,
+                solution = JSON.stringify(inventory),
+                evt = 0,
                 link = document.createElement("A"),
                 fallback = document.createElement("DIV"),
                 fbClear = document.createElement("A");
@@ -420,7 +508,7 @@
                     canvas.zindicies[j].tID = canvas.types[canvas.zindicies[j].type].push(canvas.zindicies[j]);
                 }
             }
-        }
+        };
         this.AddLayer = function (item) {
             var cnvNEW = canvas.zindicies[canvas.zindicies.push(new Layer(
                 void (0), void (0), void (0), void (0), void (0), item)) - 1];
